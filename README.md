@@ -1,6 +1,6 @@
-Made by Atiya
-Discord: atiya.
-Github: https://github.com/MAtiyaaa
+* Made by Atiya
+* Discord: atiya.
+* Github: https://github.com/MAtiyaaa
 
 # Description
 * **Simple drag-and-drop.**
