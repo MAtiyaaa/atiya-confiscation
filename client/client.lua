@@ -13,38 +13,41 @@ Citizen.CreateThread(function()
         SetBlockingOfNonTemporaryEvents(ped, true)
         FreezeEntityPosition(ped, true)
 
+        local interactionOptions = {
+            {
+                event = 'qb-policelockers:client:RequestOpenLocker',
+                icon = 'fas fa-box-open',
+                label = 'Open Locker',
+            }
+        }
+
         if pedConfig.useQbTarget then
             exports['qb-target']:AddTargetEntity(ped, {
-                options = {
-                    {
-                        event = 'qb-policelockers:client:OpenLocker',
-                        icon = 'fas fa-box-open',
-                        label = 'Open Locker',
-                    }
-                },
+                options = interactionOptions,
                 distance = 2.0
             })
         else
             exports['ox_target']:AddEntityZone('policelocker_' .. pedConfig.model, ped, {
-                name='policelocker_' .. pedConfig.model,
-                debugPoly=false,
-                useZ=true
-                }, {
-                    options = {
-                        {
-                            event = 'qb-policelockers:client:OpenLocker',
-                            icon = 'fas fa-box-open',
-                            label = 'Open Locker',
-                        }
-                    },
-                    distance = 2.0
-                }
-            )
+                name = 'policelocker_' .. pedConfig.model,
+                debugPoly = false,
+                useZ = true
+            }, {
+                options = interactionOptions,
+                distance = 2.0
+            })
         end
     end
 end)
 
-RegisterNetEvent('qb-policelockers:client:OpenLocker', function()
+RegisterNetEvent('qb-policelockers:client:RequestOpenLocker', function()
     local Player = QBCore.Functions.GetPlayerData()
-    TriggerServerEvent('qb-policelockers:server:OpenLocker', Player.citizenid)
+    TriggerServerEvent('qb-policelockers:server:CheckLockerStatus', Player.citizenid)
+end)
+
+RegisterNetEvent('qb-policelockers:client:LockerStatus', function(isLocked, remainingTime)
+    if isLocked then
+        QBCore.Functions.Notify('Locker is locked for ' .. remainingTime .. ' more minutes.', 'error')
+    else
+        TriggerServerEvent('qb-policelockers:server:OpenLocker', QBCore.Functions.GetPlayerData().citizenid)
+    end
 end)
