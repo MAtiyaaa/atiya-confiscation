@@ -1,10 +1,15 @@
 Config = {}
 
-Config.Command = {
-    name = 'openlocker',  -- Name of the command.
-    description = 'Open a player\'s locker',  -- Command's description
-    usage = 'ID/CID',  -- What displays as a requirement
-    help = 'Enter the player\'s server ID or CID' -- Description to help
+Config.Commands = {
+    openLocker = {
+        name = 'openlocker',  -- Name of the command.
+        description = 'Open a player\'s locker',  -- Commands description
+        usage = 'ID/CID' -- Describes what's needed for input
+    },
+    lockLocker = {
+        name = 'locklocker',
+        description = 'Lock player\'s locker',
+    }
 }
 
 Config.Peds = {
