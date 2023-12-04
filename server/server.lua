@@ -38,11 +38,14 @@ end
 
 local function hasAccess(player, citizenId)
     if Config.AccessControl.checkType == 'job' then
-        return player.PlayerData.job.name == Config.AccessControl.jobName
+        for _, job in ipairs(Config.AccessControl.jobName) do
+            if player.PlayerData.job.name == job then
+                return true
+            end
+        end  
     elseif Config.AccessControl.checkType == 'type' then
         return player.PlayerData.job.type == Config.AccessControl.jobName
     end
-
     if lockerTimers[citizenId] and lockerTimers[citizenId] > os.time() then
         return false
     end
