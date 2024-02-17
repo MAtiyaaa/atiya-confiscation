@@ -9,19 +9,22 @@ Config.Commands = {
     lockLocker = {
         name = 'locklocker',
         description = 'Lock player\'s locker',
+    },
+    unlockLocker = {
+        name = 'unlocklocker',
+        description = 'Unlock player\'s locker',
+        usage = 'ID/CID'
     }
 }
 
-Config.QBTarget = true -- Set to true to use qb-target, false to use ox_target
+Config.Target = 'QB' -- 'QB' for qb-target, 'OX' for ox-target, '3D' for 3D Text
 
 Config.Peds = {
     {
         model = 's_m_y_cop_01', -- Get ped names from https://wiki.rage.mp/index.php?title=Peds
         location = vector4(442.39, -981.911, 29.69, 85.0), -- GABZ MRPD
-
         animDict = 'missheistdockssetup1clipboard@base',  -- Get animations from https://alexguirre.github.io/animations-list/
         animName = 'base',  -- Get animations from https://alexguirre.github.io/animations-list/
-
         prop = 'prop_notepad_01',  -- Find Prop here https://gist.github.com/leonardosnt/53faac01a38fc94505e9
         propBone = 18905, -- Find Bones here https://wiki.rage.mp/index.php?title=Bones
         propPlacement = vector3(0.1, 0.02, 0.05),
@@ -30,10 +33,8 @@ Config.Peds = {
     {
         model = 'csb_cop',
         location = vector4(1844.57, 2581.75, 45.01, 76.00), -- GABZ BOILINGBROKE PEN.
-
         animDict = 'missheistdockssetup1clipboard@base',
         animName = 'base',
-        
         prop = 'prop_notepad_01',
         propBone = 18905,
         propPlacement = vector3(0.1, 0.02, 0.05),
@@ -50,6 +51,12 @@ Config.AccessControl = {
     },    
     checkType = 'job',   -- 'job' for jobName, 'type' for jobType (if you're using jobtype = 'leo' due to multiple departments, set to 'type', if only using the default police job, set to 'job')
 }
+
+Config.Unlocking = {
+    allowedGrade = 7,  -- What grades can unlock the lockers
+    adminCanUnlock = false,  -- True = admin can unlock lockers
+}
+
 
 Config.Locker = {
     slots = 50,     -- Slots in the locker
