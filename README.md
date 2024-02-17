@@ -12,6 +12,7 @@
 # Dependencies
 * [QBCore](https://github.com/qbcore-framework)
 * [ox_inventory by overextended](https://github.com/overextended/ox_inventory)
+* `[OPTIONAL, SET CONFIG TO 3D TEXT IF YOU ARE NOT USING]`
 * [QB-Target](https://github.com/qbcore-framework/qb-target)
 * **OR**
 * [OX_Target by overextended](https://github.com/overextended/ox_target)
