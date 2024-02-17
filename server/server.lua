@@ -37,20 +37,23 @@ local function getLocker(citizenId)
 end
 
 local function hasAccess(player, citizenId)
+    local jobName = player.PlayerData.job.name
+    local isAuthorizedJob = false
+
     if Config.AccessControl.checkType == 'job' then
-        for _, job in ipairs(Config.AccessControl.jobName) do
-            if player.PlayerData.job.name == job then
-                return true
+        for _, allowedJob in ipairs(Config.AccessControl.jobName) do
+            if jobName == allowedJob then
+                isAuthorizedJob = true
+                break
             end
-        end  
+        end
     elseif Config.AccessControl.checkType == 'type' then
-        return player.PlayerData.job.type == Config.AccessControl.jobName
-    end
-    if lockerTimers[citizenId] and lockerTimers[citizenId] > os.time() then
-        return false
+        isAuthorizedJob = player.PlayerData.job.type == Config.AccessControl.jobName
     end
 
-    return true
+    local isLockerLocked = lockerTimers[citizenId] and lockerTimers[citizenId] > os.time()
+
+    return isAuthorizedJob and not isLockerLocked
 end
 
 local function createLocker(citizenId)
@@ -114,6 +117,38 @@ QBCore.Commands.Add(Config.Commands.lockLocker.name, Config.Commands.lockLocker.
         TriggerClientEvent('QBCore:Notify', src, 'You are not authorized!', 'error')
     end
 end, false)
+
+QBCore.Commands.Add(Config.Commands.unlockLocker.name, Config.Commands.unlockLocker.description, {{name = 'id', help = Config.Commands.unlockLocker.usage}}, true, function(source, args)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    local targetId = args[1]
+    local lockDuration = tonumber(args[2])
+    local isAdmin = IsPlayerAdmin(src)
+    local isAllowedToUnlock = Player.PlayerData.job.grade.level >= Config.Unlocking.allowedGrade or (Config.Unlocking.adminCanUnlock and isAdmin)
+
+    if Player and hasAccess(Player, targetId) and isAllowedToUnlock then
+        local targetPlayer = QBCore.Functions.GetPlayerByCitizenId(targetId) or QBCore.Functions.GetPlayer(tonumber(targetId))
+        if targetPlayer then
+            local citizenId = targetPlayer.PlayerData.citizenid
+            lockerTimers[citizenId] = os.time() + (0 * 60)
+            saveLockerTimes()
+            TriggerClientEvent('QBCore:Notify', src, 'Locker has been unlocked.', 'success')
+        else
+            TriggerClientEvent('QBCore:Notify', src, 'This locker is not currently locked.', 'error')
+        end
+    else
+        TriggerClientEvent('QBCore:Notify', src, 'You are not authorized!', 'error')
+    end
+end, false)
+
+
+function IsPlayerAdmin(playerId)
+    local player = QBCore.Functions.GetPlayer(playerId)
+    if player then
+        return player.PlayerData.job.name == 'admin'
+    end
+    return false
+end
 
 RegisterNetEvent('qb-policelockers:server:CheckLockerStatus', function(citizenId)
     local src = source
