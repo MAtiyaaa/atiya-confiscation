@@ -145,7 +145,7 @@ end, false)
 function IsPlayerAdmin(playerId)
     local player = QBCore.Functions.GetPlayer(playerId)
     if player then
-        return player.PlayerData.job.name == 'admin'
+        return player.PlayerData.job.name == 'admin' -- I wrote this at 3AM please ignore
     end
     return false
 end
