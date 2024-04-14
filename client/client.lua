@@ -90,6 +90,11 @@ RegisterNetEvent('qb-policelockers:client:LockerStatus', function(isLocked, rema
     end
 end)
 
+RegisterNetEvent('qb-policelockers:client:open-locker-custom', function()
+    TriggerServerEvent('inventory:server:OpenInventory', 'stash', 'Locker ' .. QBCore.Functions.GetPlayerData().charinfo.firstname)
+    TriggerEvent('inventory:client:SetCurrentStash', 'Locker ' .. QBCore.Functions.GetPlayerData().charinfo.firstname)
+end)
+
 function DrawText3Ds(x, y, z, text)
     local onScreen, _x, _y = World3dToScreen2d(x, y, z)
     SetTextScale(0.32, 0.32)
