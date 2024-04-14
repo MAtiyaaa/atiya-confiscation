@@ -17,7 +17,8 @@ Config.Commands = {
     }
 }
 
-Config.Target = 'QB' -- 'QB' for qb-target, 'OX' for ox-target, '3D' for 3D Text
+Config.Inventory = 'QB' -- 'QB' for qb-inventory, 'OX' for ox_inventory
+Config.Target = 'QB' -- 'QB' for qb-target, 'OX' for ox_target, '3D' for 3D Text
 
 Config.Peds = {
     {
@@ -54,13 +55,13 @@ Config.AccessControl = {
 
 Config.Unlocking = {
     allowedGrade = 7,  -- What grades can unlock the lockers
-    adminCanUnlock = false,  -- True = admin can unlock lockers
+    adminCanUnlock = true,  -- True = admin can unlock lockers
 }
 
 
 Config.Locker = {
     slots = 50,     -- Slots in the locker
-    maxWeight = 50000 -- Maximum weight (10000 = 10kg)
+    weight = 50000 -- Maximum weight (10000 = 10kg)
 }
 
 return Config
