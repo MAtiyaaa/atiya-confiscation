@@ -63,11 +63,14 @@ local function createLocker(citizenId)
         local lockerLabel = 'Locker - ' .. citizenId
         local slots = Config.Locker.slots
         local maxWeight = Config.Locker.maxWeight
-
-        exports.ox_inventory:RegisterStash(lockerId, lockerLabel, slots, maxWeight, citizenId)
-
         locker = { id = lockerId, label = lockerLabel, slots = slots, weight = maxWeight, owner = citizenId }
         lockers[citizenId] = locker
+
+        if Config.Inventory == 'OX' then
+            exports.ox_inventory:RegisterStash(lockerId, lockerLabel, slots, maxWeight, citizenId)
+        else
+            return locker
+        end
     end
     return locker
 end
@@ -76,14 +79,20 @@ QBCore.Commands.Add(Config.Commands.openLocker.name, Config.Commands.openLocker.
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local targetId = args[1]
+    local isAdmin = QBCore.Functions.HasPermission(source, 'admin')
+    local isAllowedToUnlock = Config.Unlocking.adminCanUnlock and isAdmin
 
-    if Player and hasAccess(Player, targetId) then
+    if Player and hasAccess(Player, targetId) or isAllowedToUnlock then
         local targetPlayer = QBCore.Functions.GetPlayerByCitizenId(targetId) or QBCore.Functions.GetPlayer(tonumber(targetId))
         if targetPlayer then
             local citizenId = targetPlayer.PlayerData.citizenid
             local locker = createLocker(citizenId)
             if not lockerTimers[citizenId] or lockerTimers[citizenId] <= os.time() then
-                exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+                if Config.Inventory == 'QB' then
+                    TriggerClientEvent('qb-policelockers:client:open-locker-custom', src, locker.id)
+                elseif Config.Inventory == 'OX' then
+                    exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+                end
             else
                 TriggerClientEvent('QBCore:Notify', src, 'This locker is currently locked.', 'error')
             end
@@ -102,8 +111,10 @@ QBCore.Commands.Add(Config.Commands.lockLocker.name, Config.Commands.lockLocker.
     local Player = QBCore.Functions.GetPlayer(src)
     local targetId = args[1]
     local lockDuration = tonumber(args[2])
+    local isAdmin = QBCore.Functions.HasPermission(source, 'admin')
+    local isAllowedToUnlock = Config.Unlocking.adminCanUnlock and isAdmin
 
-    if Player and hasAccess(Player, targetId) then
+    if Player and hasAccess(Player, targetId) or isAllowedToUnlock then
         local targetPlayer = QBCore.Functions.GetPlayerByCitizenId(targetId) or QBCore.Functions.GetPlayer(tonumber(targetId))
         if targetPlayer and lockDuration and lockDuration > 0 then
             local citizenId = targetPlayer.PlayerData.citizenid
@@ -123,7 +134,7 @@ QBCore.Commands.Add(Config.Commands.unlockLocker.name, Config.Commands.unlockLoc
     local Player = QBCore.Functions.GetPlayer(src)
     local targetId = args[1]
     local lockDuration = tonumber(args[2])
-    local isAdmin = IsPlayerAdmin(src)
+    local isAdmin = QBCore.Functions.HasPermission(source, 'admin')
     local isAllowedToUnlock = Player.PlayerData.job.grade.level >= Config.Unlocking.allowedGrade or (Config.Unlocking.adminCanUnlock and isAdmin)
 
     if Player and hasAccess(Player, targetId) and isAllowedToUnlock then
@@ -141,15 +152,6 @@ QBCore.Commands.Add(Config.Commands.unlockLocker.name, Config.Commands.unlockLoc
     end
 end, false)
 
-
-function IsPlayerAdmin(playerId)
-    local player = QBCore.Functions.GetPlayer(playerId)
-    if player then
-        return player.PlayerData.job.name == 'admin' -- I wrote this at 3AM please ignore
-    end
-    return false
-end
-
 RegisterNetEvent('qb-policelockers:server:CheckLockerStatus', function(citizenId)
     local src = source
     local locker = createLocker(citizenId)
@@ -158,7 +160,11 @@ RegisterNetEvent('qb-policelockers:server:CheckLockerStatus', function(citizenId
             local remainingTime = math.ceil((lockerTimers[citizenId] - os.time()) / 60)
             TriggerClientEvent('qb-policelockers:client:LockerStatus', src, true, remainingTime)
         else
-            exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+            if Config.Inventory == 'QB' then
+                TriggerClientEvent('qb-policelockers:client:open-locker-custom', src, locker.id)
+            elseif Config.Inventory == 'OX' then
+                exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+            end
         end
     else
         TriggerClientEvent('QBCore:Notify', src, 'Your locker is empty', 'error')
@@ -173,10 +179,13 @@ RegisterNetEvent('qb-policelockers:server:OpenLocker', function(citizenId)
         TriggerClientEvent('qb-policelockers:client:LockerStatus', src, true, remainingTime)
         return
     end
-
     local locker = createLocker(citizenId)
     if locker then
-        exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+        if Config.Inventory == 'QB' then
+            TriggerClientEvent('qb-policelockers:client:open-locker-custom', src, locker.id)
+        elseif Config.Inventory == 'OX' then
+            exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
+        end
     else
         TriggerClientEvent('QBCore:Notify', src, 'Your locker is empty', 'error')
     end
