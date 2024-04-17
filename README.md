@@ -1,6 +1,6 @@
 
 
-## QB Confiscation Locker
+## QB Confiscation Locker (Formerly QB Police Lockers)
 
 > * Made by Atiya
 > 
