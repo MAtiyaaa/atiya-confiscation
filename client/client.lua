@@ -35,7 +35,7 @@ Citizen.CreateThread(function()
 
         local interactionOptions = {
             {
-                event = 'qb-policelockers:client:RequestOpenLocker',
+                event = 'qb-confiscation:client:RequestOpenLocker',
                 icon = 'fas fa-lock',
                 label = 'Open Locker',
             }
@@ -47,11 +47,7 @@ Citizen.CreateThread(function()
                 distance = 2.0
             })
         elseif Config.Target == 'OX' then
-            exports['ox_target']:AddEntityZone('policelocker_' .. pedConfig.model, ped, {
-                name = 'policelocker_' .. pedConfig.model,
-                debugPoly = false,
-                useZ = true
-            }, {
+            exports['qb-target']:AddTargetEntity(ped, {
                 options = interactionOptions,
                 distance = 2.0
             })
@@ -66,7 +62,7 @@ Citizen.CreateThread(function()
                         if distance < 2.5 then
                             DrawText3Ds(v.location.x, v.location.y, v.location.z + 1.0, "Press ~r~[E]~s~ To Open ~y~Locker~s~")
                             if IsControlJustReleased(0, 38) then
-                                TriggerEvent('qb-policelockers:client:RequestOpenLocker')
+                                TriggerEvent('qb-confiscation:client:RequestOpenLocker')
                             end
                         end
                     end
@@ -77,22 +73,22 @@ Citizen.CreateThread(function()
 end)
 
 
-RegisterNetEvent('qb-policelockers:client:RequestOpenLocker', function()
+RegisterNetEvent('qb-confiscation:client:RequestOpenLocker', function()
     local Player = QBCore.Functions.GetPlayerData()
-    TriggerServerEvent('qb-policelockers:server:CheckLockerStatus', Player.citizenid)
+    TriggerServerEvent('qb-confiscation:server:CheckLockerStatus', Player.citizenid)
 end)
 
-RegisterNetEvent('qb-policelockers:client:LockerStatus', function(isLocked, remainingTime)
+RegisterNetEvent('qb-confiscation:client:LockerStatus', function(isLocked, remainingTime)
     if isLocked then
         QBCore.Functions.Notify('Locker is locked for ' .. remainingTime .. ' more minutes.', 'error')
     else
-        TriggerServerEvent('qb-policelockers:server:OpenLocker', QBCore.Functions.GetPlayerData().citizenid)
+        TriggerServerEvent('qb-confiscation:server:OpenLocker', QBCore.Functions.GetPlayerData().citizenid)
     end
 end)
 
-RegisterNetEvent('qb-policelockers:client:open-locker-custom', function()
-    TriggerServerEvent('inventory:server:OpenInventory', 'stash', 'Locker ' .. QBCore.Functions.GetPlayerData().charinfo.firstname)
-    TriggerEvent('inventory:client:SetCurrentStash', 'Locker ' .. QBCore.Functions.GetPlayerData().charinfo.firstname)
+RegisterNetEvent('qb-confiscation:client:open-locker-custom', function()
+    TriggerServerEvent('inventory:server:OpenInventory', 'stash', 'Locker ' .. QBCore.Functions.GetPlayerData().citizenid)
+    TriggerEvent('inventory:client:SetCurrentStash', 'Locker ' .. QBCore.Functions.GetPlayerData().citizenid)
 end)
 
 function DrawText3Ds(x, y, z, text)
