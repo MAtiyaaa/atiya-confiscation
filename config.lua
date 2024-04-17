@@ -17,7 +17,7 @@ Config.Commands = {
     }
 }
 
-Config.Inventory = 'QB' -- 'QB' for qb-inventory, 'OX' for ox_inventory
+Config.Inventory = 'OX' -- 'QB' for qb-inventory, 'OX' for ox_inventory
 Config.Target = 'QB' -- 'QB' for qb-target, 'OX' for ox_target, '3D' for 3D Text
 
 Config.Peds = {
@@ -43,6 +43,17 @@ Config.Peds = {
     },
 }
 
+Config.HospitalConfiscate = true -- Useless config, if you don't want it to confiscate in hospital, don't add the ambulancejob snippet.
+Config.JailConfiscate = true -- Useless config, if you don't want it to confiscate in hospital, don't add the policejob snippet.
+
+Config.Confiscation = {
+    Mode = 'blacklist',  -- 'blacklist' to take ONLY the items below, 'whitelist' to take everything BUT the items below
+    Items = {
+        'weapon_pistol',
+        'weapon_knife'
+    }
+}
+
 Config.AccessControl = {
     jobName = { 
         'police',  -- Change the name of the job/type that can access the lockers (like 'police' or 'sheriff' or 'leo')
@@ -60,8 +71,8 @@ Config.Unlocking = {
 
 
 Config.Locker = {
-    slots = 50,     -- Slots in the locker
-    weight = 50000 -- Maximum weight (10000 = 10kg)
+    slots = 100,     -- Slots in the locker
+    weight = 250000 -- Maximum weight (10000 = 10kg)
 }
 
 return Config
