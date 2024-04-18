@@ -44,7 +44,7 @@ Config.Peds = {
 }
 
 Config.HospitalConfiscate = true -- Useless config, if you don't want it to confiscate in hospital, don't add the ambulancejob snippet.
-Config.JailConfiscate = true -- Useless config, if you don't want it to confiscate in hospital, don't add the policejob snippet.
+Config.JailConfiscate = true -- Useless config, if you don't want it to confiscate in jail, don't add the policejob snippet.
 
 Config.Confiscation = {
     Mode = 'blacklist',  -- 'blacklist' to take ONLY the items below, 'whitelist' to take everything BUT the items below
