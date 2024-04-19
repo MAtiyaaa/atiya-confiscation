@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Atiya'
-description 'Locker Confiscation System for Police'
-version '2.0.1'
+description 'Locker Confiscation System'
+version '2.0.2'
 
 shared_script 'config.lua'
 client_script 'client/*.lua'
