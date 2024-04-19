@@ -2,6 +2,7 @@ QBCore = exports['qb-core']:GetCoreObject()
 
 local lockers = {}
 local lockerTimers = {}
+MySQL = exports.oxmysql
 
 local function saveLockerTimes()
     local timeData = {}
@@ -103,6 +104,7 @@ QBCore.Commands.Add(Config.Commands.openLocker.name, Config.Commands.openLocker.
         TriggerClientEvent('QBCore:Notify', src, 'You are not authorized!', 'error')
     end
 end, false)
+
 QBCore.Commands.Add(Config.Commands.lockLocker.name, Config.Commands.lockLocker.description, {
     {name = 'ID/CitizenID', help = 'Enter the player\'s server ID or CitizenID'},
     {name = 'Minutes', help = 'How many minutes should the locker stay locked'}
@@ -171,42 +173,71 @@ RegisterNetEvent('qb-confiscation:server:CheckLockerStatus', function(citizenId)
     end
 end)
 
-AddEventHandler('qb-confiscation:confiscateItems', function(playerId)
+RegisterNetEvent('qb-confiscation:confiscateItems', function(playerId)
     local Player = QBCore.Functions.GetPlayer(playerId)
-    if Player then
-        local lockerId = 'locker-' .. Player.PlayerData.citizenid
-        local lockerInventory = exports.ox_inventory:GetInventory(lockerId)
-        local itemsProcessed = false
-
-        for _, itemSlot in pairs(Player.PlayerData.items) do
-            if itemSlot.name and itemSlot.count and itemSlot.count > 0 then
-                local item = string.lower(itemSlot.name)
-                local amount = itemSlot.count
-                local isInList = table.contains(Config.Confiscation.Items, item)
-
-                local shouldProcess = (Config.Confiscation.Mode == 'blacklist' and isInList) or
-                                      (Config.Confiscation.Mode == 'whitelist' and not isInList)
-
-                if shouldProcess then
-                    local canCarry = lockerInventory and exports.ox_inventory:CanCarryItem(lockerInventory, itemSlot.name, amount)
-                    if canCarry then
-                        itemsProcessed = true
-                        Player.Functions.RemoveItem(itemSlot.name, amount)
-                        AddToLocker(Player.PlayerData.citizenid, itemSlot.name, amount)
-                    else
-                        print("Not enough space in the locker to add " .. itemSlot.name)
-                        TriggerClientEvent('QBCore:Notify', playerId, "Not enough space in your locker for " .. itemSlot.name, 'error')
-                    end
-                end
+    if not Player then
+        -- print("Player not found with ID: " .. playerId)
+        return
+    end
+    if Config.Inventory == 'QB' then
+        local itemsProcessedQB = false
+        
+        local shouldProcessItem = function(itemName)
+            local item = string.lower(itemName)
+            local isInList = table.contains(Config.Confiscation.Items, item)
+            if Config.Confiscation.Mode == 'blacklist' then
+                return isInList
             else
-                print("Invalid item data or count for item: " .. tostring(itemSlot.name))
+                return not isInList
             end
         end
+        
+        for _, itemData in pairs(Player.PlayerData.items) do
+            if itemData and itemData.amount > 0 and shouldProcessItem(itemData.name) then
+                Player.Functions.RemoveItem(itemData.name, itemData.amount, itemData.slot)
+                AddToLockerForQB(Player.PlayerData.citizenid, itemData.name, itemData.amount, itemData.info)
+                itemsProcessedQB = true
+            end
+        end
+        
+        if itemsProcessedQB then
+            TriggerClientEvent('QBCore:Notify', playerId, 'Some of your items have been placed in your locker', 'error')
+        end
 
-        if itemsProcessed then
-            TriggerClientEvent('QBCore:Notify', playerId, 'All your items have been placed in the police locker', 'error')
-        else
-            -- TriggerClientEvent('QBCore:Notify', playerId, 'No items needed to be moved to the locker.', 'error')
+    elseif Config.Inventory == 'OX' then
+        if Player then
+            local lockerId = 'locker-' .. Player.PlayerData.citizenid
+            local lockerInventory = exports.ox_inventory:GetInventory(lockerId)
+            local itemsProcessed = false
+
+            for _, itemSlot in pairs(Player.PlayerData.items) do
+                if itemSlot.name and itemSlot.count and itemSlot.count > 0 then
+                    local item = string.lower(itemSlot.name)
+                    local amount = itemSlot.count
+                    local isInList = table.contains(Config.Confiscation.Items, item)
+
+                    local shouldProcess = (Config.Confiscation.Mode == 'blacklist' and isInList) or
+                                          (Config.Confiscation.Mode == 'whitelist' and not isInList)
+
+                    if shouldProcess then
+                        local canCarry = lockerInventory and exports.ox_inventory:CanCarryItem(lockerInventory, itemSlot.name, amount)
+                        if canCarry then
+                            itemsProcessed = true
+                            Player.Functions.RemoveItem(itemSlot.name, amount)
+                            AddToLocker(Player.PlayerData.citizenid, itemSlot.name, amount)
+                        else
+                            -- print("Not enough space in the locker to add " .. itemSlot.name)
+                            TriggerClientEvent('QBCore:Notify', playerId, "Not enough space in your locker for " .. itemSlot.name, 'error')
+                        end
+                    end
+                else
+                    -- print("Invalid item data or count for item: " .. tostring(itemSlot.name))
+                end
+            end
+
+            if itemsProcessed then
+                TriggerClientEvent('QBCore:Notify', playerId, 'Some of your items have been placed in your locker', 'error')
+            end
         end
     end
 end)
@@ -252,11 +283,94 @@ function AddToLocker(citizenId, item, amount, metadata)
     end
 
     if not exports.ox_inventory:CanCarryItem(lockerInventory, item, amount) then
-        print('Locker cannot carry more items')
+        -- print('Locker cannot carry more items')
         return
     end
     local success, response = exports.ox_inventory:AddItem(lockerId, item, amount)
     if not success then
-        print('Failed to add item to locker:', response)
+        -- print('Failed to add item to locker:', response)
     end
+end
+
+function AddToLockerForQB(citizenId, item, amount, info)
+    local lockerId = 'Locker ' .. citizenId
+    local itemsJson = exports.oxmysql:scalar_async('SELECT items FROM stashitems WHERE stash = ?', { lockerId })
+    local items = itemsJson and json.decode(itemsJson) or {}
+
+    local itemData = QBCore.Shared.Items[item:lower()]
+    if not itemData then
+        -- print("Item data not found for item:", item)
+        return
+    end
+    local metaInfo = info or {}
+
+    if itemData.type == 'weapon' then
+        metaInfo.serie = metaInfo.serie or tostring(QBCore.Shared.RandomInt(2) .. QBCore.Shared.RandomStr(3) .. QBCore.Shared.RandomInt(1) .. QBCore.Shared.RandomStr(2) .. QBCore.Shared.RandomInt(3) .. QBCore.Shared.RandomStr(4))
+        metaInfo.quality = metaInfo.quality or 100
+
+    elseif itemData.name == 'harness' then
+        metaInfo.uses = metaInfo.uses or 20
+
+    elseif itemData.name == 'markedbills' then
+        metaInfo.worth = metaInfo.worth or math.random(5000,10000)
+
+    elseif itemData.name == 'id_card' then
+        metaInfo.citizenid = metaInfo.citizenid or Player.PlayerData.citizenid
+        metaInfo.firstname = metaInfo.firstname or Player.PlayerData.charinfo.firstname
+        metaInfo.lastname = metaInfo.lastname or Player.PlayerData.charinfo.lastname
+        metaInfo.birthdate = metaInfo.birthdate or Player.PlayerData.charinfo.birthdate
+        metaInfo.gender = metaInfo.gender or Player.PlayerData.charinfo.gender
+        metaInfo.nationality = metaInfo.nationality or Player.PlayerData.charinfo.nationality
+
+    elseif itemData.name == 'driver_license' then
+        metaInfo.firstname = metaInfo.firstname or Player.PlayerData.charinfo.firstname
+        metaInfo.lastname = metaInfo.lastname or Player.PlayerData.charinfo.lastname
+        metaInfo.birthdate = metaInfo.birthdate or Player.PlayerData.charinfo.birthdate
+        metaInfo.type = metaInfo.type or 'Class C Driver License'
+    end
+
+    local isUnique = itemData.unique
+
+    if isUnique then
+        for i = 1, amount do
+            table.insert(items, {
+                name = item,
+                amount = 1,
+                info = metaInfo,
+                label = itemData.label,
+                weight = itemData.weight,
+                unique = true,
+                slot = #items + 1
+            })
+        end
+    else
+        local found = false
+        for i, lockerItem in ipairs(items) do
+            if lockerItem.name == item and not lockerItem.unique then
+                lockerItem.amount = lockerItem.amount + amount
+                found = true
+                break
+            end
+        end
+        if not found then
+            table.insert(items, {
+                name = item,
+                amount = amount,
+                info = metaInfo,
+                label = itemData.label,
+                weight = itemData.weight,
+                unique = false,
+                slot = #items + 1
+            })
+        end
+    end
+
+    local updateQuery = 'UPDATE stashitems SET items = ? WHERE stash = ?'
+    exports.oxmysql:execute(updateQuery, {json.encode(items), lockerId}, function(response)
+        if response and response.affectedRows then
+            -- print('Items updated successfully in locker:', lockerId)
+        else
+            -- print('Failed to update items for locker:', lockerId)
+        end
+    end)
 end
