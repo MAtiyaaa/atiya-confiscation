@@ -76,34 +76,46 @@ local function createLocker(citizenId)
     return locker
 end
 
-QBCore.Commands.Add(Config.Commands.openLocker.name, Config.Commands.openLocker.description, {{name = Config.Commands.openLocker.usage, help = 'Enter Player ID or CID'}}, true, function(source, args)   
+QBCore.Commands.Add(Config.Commands.openLocker.name, Config.Commands.openLocker.description, {{name = 'id', help = 'Enter Player ID or CID'}}, true, function(source, args)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local targetId = args[1]
-    local isAdmin = QBCore.Functions.HasPermission(source, 'admin')
+    local isAdmin = QBCore.Functions.HasPermission(src, 'admin')
     local isAllowedToUnlock = Config.Unlocking.adminCanUnlock and isAdmin
 
+    if not Player then
+        TriggerClientEvent('QBCore:Notify', src, 'You are not authorized!', 'error')
+        return
+    end
+    
     if Player and hasAccess(Player, targetId) or isAllowedToUnlock then
+
         local targetPlayer = QBCore.Functions.GetPlayerByCitizenId(targetId) or QBCore.Functions.GetPlayer(tonumber(targetId))
-        if targetPlayer then
-            local citizenId = targetPlayer.PlayerData.citizenid
-            local locker = createLocker(citizenId)
-            if not lockerTimers[citizenId] or lockerTimers[citizenId] <= os.time() then
-                if Config.Inventory == 'QB' then
-                    TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, locker.id)
-                elseif Config.Inventory == 'OX' then
-                    exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
-                end
-            else
-                TriggerClientEvent('QBCore:Notify', src, 'This locker is currently locked.', 'error')
+
+        if not targetPlayer or not targetPlayer.PlayerData or not targetPlayer.PlayerData.citizenid then
+            TriggerClientEvent('QBCore:Notify', src, 'Player not found or missing citizen ID.', 'error')
+            -- print('Failed to retrieve player or citizen ID for target ID:', targetId)
+            return
+        end
+
+        local citizenId = targetPlayer.PlayerData.citizenid
+        local lockerId = 'Locker ' .. citizenId
+        local locker = createLocker(citizenId)
+
+        if not lockerTimers[citizenId] or lockerTimers[citizenId] <= os.time() then
+            if Config.Inventory == 'QB' then
+                TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, lockerId)
+            elseif Config.Inventory == 'OX' then
+                exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
             end
         else
-            TriggerClientEvent('QBCore:Notify', src, 'Player not found', 'error')
+            TriggerClientEvent('QBCore:Notify', src, 'This locker is currently locked.', 'error')
         end
     else
         TriggerClientEvent('QBCore:Notify', src, 'You are not authorized!', 'error')
     end
 end, false)
+
 
 QBCore.Commands.Add(Config.Commands.lockLocker.name, Config.Commands.lockLocker.description, {
     {name = 'ID/CitizenID', help = 'Enter the player\'s server ID or CitizenID'},
@@ -292,6 +304,15 @@ function AddToLocker(citizenId, item, amount, metadata)
     end
 end
 
+function asyncUpdateStashItems(lockerId, items, callback)
+    local updateQuery = 'UPDATE stashitems SET items = ? WHERE stash = ?'
+    exports.oxmysql:execute_async(updateQuery, {json.encode(items), lockerId}, function(affectedRows)
+        if callback then
+            callback(affectedRows)
+        end
+    end)
+end
+
 function AddToLockerForQB(citizenId, item, amount, info)
     local lockerId = 'Locker ' .. citizenId
     local itemsJson = exports.oxmysql:scalar_async('SELECT items FROM stashitems WHERE stash = ?', { lockerId })
@@ -365,9 +386,8 @@ function AddToLockerForQB(citizenId, item, amount, info)
         end
     end
 
-    local updateQuery = 'UPDATE stashitems SET items = ? WHERE stash = ?'
-    exports.oxmysql:execute(updateQuery, {json.encode(items), lockerId}, function(response)
-        if response and response.affectedRows then
+    asyncUpdateStashItems(lockerId, items, function(response)
+        if response and response > 0 then
             -- print('Items updated successfully in locker:', lockerId)
         else
             -- print('Failed to update items for locker:', lockerId)
