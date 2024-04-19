@@ -169,13 +169,14 @@ end, false)
 RegisterNetEvent('qb-confiscation:server:CheckLockerStatus', function(citizenId)
     local src = source
     local locker = createLocker(citizenId)
+    local lockerId = 'Locker ' .. citizenId
     if locker then
         if lockerTimers[citizenId] and lockerTimers[citizenId] > os.time() then
             local remainingTime = math.ceil((lockerTimers[citizenId] - os.time()) / 60)
             TriggerClientEvent('qb-confiscation:client:LockerStatus', src, true, remainingTime)
         else
             if Config.Inventory == 'QB' then
-                TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, locker.id)
+                TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, lockerId)
             elseif Config.Inventory == 'OX' then
                 exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
             end
@@ -271,9 +272,10 @@ RegisterNetEvent('qb-confiscation:server:OpenLocker', function(citizenId)
         return
     end
     local locker = createLocker(citizenId)
+    local lockerId = 'Locker ' .. citizenId
     if locker then
         if Config.Inventory == 'QB' then
-            TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, locker.id)
+            TriggerClientEvent('qb-confiscation:client:open-locker-custom', src, lockerId)
         elseif Config.Inventory == 'OX' then
             exports.ox_inventory:forceOpenInventory(src, 'stash', locker.id)
         end
