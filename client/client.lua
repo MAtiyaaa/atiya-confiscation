@@ -86,9 +86,9 @@ RegisterNetEvent('qb-confiscation:client:LockerStatus', function(isLocked, remai
     end
 end)
 
-RegisterNetEvent('qb-confiscation:client:open-locker-custom', function()
-    TriggerServerEvent('inventory:server:OpenInventory', 'stash', 'Locker ' .. QBCore.Functions.GetPlayerData().citizenid)
-    TriggerEvent('inventory:client:SetCurrentStash', 'Locker ' .. QBCore.Functions.GetPlayerData().citizenid)
+RegisterNetEvent('qb-confiscation:client:open-locker-custom', function(lockerId)
+    TriggerServerEvent('inventory:server:OpenInventory', 'stash', lockerId)
+    TriggerEvent('inventory:client:SetCurrentStash', lockerId)
 end)
 
 function DrawText3Ds(x, y, z, text)
