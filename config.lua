@@ -2,15 +2,23 @@ Config = {}
 
 Config.Commands = {
     openLocker = {
-        name = 'openlocker',  -- Name of the command.
-        description = 'Open a player\'s locker',  -- Commands description
-        usage = 'ID/CID' -- Describes what's needed for input
+        enabled = true,  -- Option to enable/disable the command
+        name = 'openlocker',  -- Name of the command
+        description = 'Open a player\'s locker',  -- Command description
+        usage = 'ID/CID',  -- Command usage        
+        locationOnly = true,  -- Disable if you want to be able to use this command anywhere (not recommended to disable, exploitable)
+        locations = {
+            { coords = vector3(442.39, -981.911, 29.69), radius = 50.0 },  -- Only Works if locationOnly is set to true
+            -- { coords = vector3(200.0, 300.0, 40.0), radius = 15.0 },
+        },
     },
     lockLocker = {
+        enabled = true,
         name = 'locklocker',
         description = 'Lock player\'s locker',
     },
     unlockLocker = {
+        enabled = true,
         name = 'unlocklocker',
         description = 'Unlock player\'s locker',
         usage = 'ID/CID'
@@ -18,7 +26,16 @@ Config.Commands = {
 }
 
 Config.Inventory = 'OX' -- 'QB' for qb-inventory, 'OX' for ox_inventory
-Config.Target = 'QB' -- 'QB' for qb-target, 'OX' for ox_target, '3D' for 3D Text
+Config.Target = 'OX' -- 'QB' for qb-target, 'OX' for ox_target, '3D' for 3D Text
+
+Config.InputMenu = {
+    Enabled = true, -- Want a menu to insert a player id? You could use this, or the openLocker command, or both!
+    method = 'OX', -- QB for qb-input, 'OX' for ox_lib
+    locations = {
+        { coords = vector3(444.51, -984.911, 30.00), radius = 10.0 }, -- GABZ MRPD
+        -- { coords = vector3(200.0, 300.0, 40.0), radius = 15.0 },
+    },
+}
 
 Config.Peds = {
     {
@@ -49,13 +66,12 @@ Config.JailConfiscate = true -- Useless config, if you don't want it to confisca
 Config.Confiscation = {
     Mode = 'blacklist',  -- 'blacklist' to take ONLY the items below, 'whitelist' to take everything BUT the items below
     Items = {
-        'weapon_pistol',
-        'weapon_knife'
+        "weapon_pistol",
+        "weapon_knife"
     }
 }
-
 Config.AccessControl = {
-    jobName = { 
+    jobName = {
         'police',  -- Change the name of the job/type that can access the lockers (like 'police' or 'sheriff' or 'leo')
         -- 'sherrif',
         -- 'leo',
