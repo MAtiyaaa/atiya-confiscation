@@ -25,12 +25,12 @@ Config.Commands = {
     }
 }
 
-Config.Inventory = 'OX' -- 'QB' for qb-inventory, 'OX' for ox_inventory
+Config.Inventory = 'QB' -- 'QB' for qb-inventory, 'OX' for ox_inventory
 Config.Target = 'OX' -- 'QB' for qb-target, 'OX' for ox_target, '3D' for 3D Text
 
 Config.InputMenu = {
     Enabled = true, -- Want a menu to insert a player id? You could use this, or the openLocker command, or both!
-    method = 'OX', -- QB for qb-input, 'OX' for ox_lib
+    method = 'QB', -- QB for qb-input, 'OX' for ox_lib
     locations = {
         { coords = vector3(444.51, -984.911, 30.00), radius = 10.0 }, -- GABZ MRPD
         -- { coords = vector3(200.0, 300.0, 40.0), radius = 15.0 },
@@ -66,22 +66,20 @@ Config.JailConfiscate = true -- Useless config, if you don't want it to confisca
 Config.Confiscation = {
     Mode = 'blacklist',  -- 'blacklist' to take ONLY the items below, 'whitelist' to take everything BUT the items below
     Items = {
+        "weapon_knife",
         "weapon_pistol",
-        "weapon_knife"
     }
 }
 Config.AccessControl = {
     jobName = {
-        'police',  -- Change the name of the job/type that can access the lockers (like 'police' or 'sheriff' or 'leo')
-        -- 'sherrif',
-        -- 'leo',
-        -- 'bcso'
+        ['leo'] = true, 
+        --['ems'] = true,
     },    
-    checkType = 'job',   -- 'job' for jobName, 'type' for jobType (if you're using jobtype = 'leo' due to multiple departments, set to 'type', if only using the default police job, set to 'job')
+    checkType = 'type',   -- 'job' for jobName, 'type' for jobType (if you're using jobtype = 'leo' due to multiple departments, set to 'type', if only using the default police job, set to 'job')
 }
 
 Config.Unlocking = {
-    allowedGrade = 7,  -- What grades can unlock the lockers
+    allowedGrade = 2,  -- What grades can unlock the lockers
     adminCanUnlock = true,  -- True = admin can unlock lockers
 }
 
