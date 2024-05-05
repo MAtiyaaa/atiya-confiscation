@@ -1,7 +1,5 @@
 QBCore = exports['qb-core']:GetCoreObject()
 
-QBCore = exports['qb-core']:GetCoreObject()
-
 Citizen.CreateThread(function()
     for _, pedConfig in pairs(Config.Peds) do
         local pedModel = GetHashKey(pedConfig.model)
@@ -48,10 +46,7 @@ Citizen.CreateThread(function()
                 distance = 2.0
             })
         elseif Config.Target == 'OX' then
-            exports['qb-target']:AddTargetEntity(ped, {
-                options = interactionOptions,
-                distance = 2.0
-            })
+            exports.ox_target:addLocalEntity(ped, interactionOptions)
         elseif Config.Target == '3D' then
             Citizen.CreateThread(function()
                 while true do
@@ -74,8 +69,9 @@ Citizen.CreateThread(function()
 
     for _, locationConfig in pairs(Config.InputMenu.locations) do
         if Config.InputMenu.Enabled then
-            local jobs = Config.AccessControl.jobName
+            --print("[Debug] Adding box zone at:", locationConfig.coords)
 
+            local jobs = Config.AccessControl.jobName
             local interactionOptions = {}
 
             for _, job in pairs(jobs) do
@@ -86,6 +82,8 @@ Citizen.CreateThread(function()
                     job = job,
                 })
             end
+
+            --print("[Debug] Interaction options:", interactionOptions)
 
             if Config.Target == 'QB' then
                 exports['qb-target']:AddBoxZone("locker-input", locationConfig.coords, 2, 2, {
@@ -98,17 +96,18 @@ Citizen.CreateThread(function()
                     options = interactionOptions,
                     distance = 2.0,
                 })
+                --print("[Debug] Added QB-target box zone")
+
             elseif Config.Target == 'OX' then
-                exports['qb-target']:AddBoxZone("locker-input", locationConfig.coords, 2, 2, {
-                    name = "locker-input",
-                    heading = 0,
-                    debugPoly = false,
-                    minZ = locationConfig.coords.z - 1,
-                    maxZ = locationConfig.coords.z + 1,
-                }, {
+                exports.ox_target:addBoxZone({
+                    coords = locationConfig.coords,
+                    size = vec3(2, 2, 1),
+                    rotation = 0,
+                    debug = false,
                     options = interactionOptions,
                     distance = 2.0,
                 })
+                --print("[Debug] Added OX-target box zone")               
             elseif Config.Target == '3D' then
                 Citizen.CreateThread(function()
                     while true do
@@ -126,8 +125,10 @@ Citizen.CreateThread(function()
                         end
                     end
                 end)
+                --print("[Debug] Added 3D text interaction for locker input")
             end
         else
+            --print("[Debug] Input menu disabled")
             return
         end
     end
