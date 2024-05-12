@@ -1,5 +1,5 @@
 
-# QB Confiscation Locker
+# Confiscation Locker for QBCore
 
 * Made by Atiya
 
