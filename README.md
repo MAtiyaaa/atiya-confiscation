@@ -1,5 +1,5 @@
 
-# Confiscation Locker for QBCore
+# Confiscation Locker for QBCore - FiveM
 
 * Made by Atiya
 
