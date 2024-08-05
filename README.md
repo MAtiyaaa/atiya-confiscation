@@ -7,8 +7,6 @@
 
 * Github: [MAtiyaaa](https://github.com/MAtiyaaa)
 
-* [Join the Discord](https://discord.gg/GyeRexYR35)
-  
 
 # Description
 
